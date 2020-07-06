@@ -48,7 +48,7 @@ class Programm():
 		self.data = tk.Entry(width = 12)
 		self.data_value = tk.Entry(width = 12)
 
-		self.button_file = tk.Button(root, text = "File", command =self.file_dir)
+		self.button_file = tk.Button(root, text = "Выбрать файл", command =self.file_dir)
 		self.button_data = tk.Button(root, text = "Add", command =self.data_send)
 		self.button_delete = tk.Button(root, text = "Delete", command =self.data_delete)
 		self.button_edit = tk.Button(root, text = "Edit", command =self.data_edit)

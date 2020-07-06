@@ -48,12 +48,12 @@ class Programm():
 		self.data = tk.Entry(width = 12)
 		self.data_value = tk.Entry(width = 12)
 
-		self.button_file = tk.Button(root, text = "Click file", command =self.file_dir)
-		self.button_data = tk.Button(root, text = "Click add", command =self.data_send)
-		self.button_delete = tk.Button(root, text = "Click delete", command =self.data_delete)
-		self.button_edit = tk.Button(root, text = "Click edit", command =self.data_edit)
-		self.send_file = tk.Button(root, text = "Click send", command =self.send)
-		self.button_test = tk.Button(root, text = "Click test", command =self.test)
+		self.button_file = tk.Button(root, text = "File", command =self.file_dir)
+		self.button_data = tk.Button(root, text = "Add", command =self.data_send)
+		self.button_delete = tk.Button(root, text = "Delete", command =self.data_delete)
+		self.button_edit = tk.Button(root, text = "Edit", command =self.data_edit)
+		self.send_file = tk.Button(root, text = "Send", command =self.send)
+		self.button_test = tk.Button(root, text = "Test", command =self.test)
 		
 		self.list_box_2 = tk.Listbox()
 
@@ -65,21 +65,18 @@ class Programm():
 		self.data_value.grid(row = 1, column = 2, columnspan = 2)
 		self.dirs.grid(row = 1, column = 3)
 
-		self.button_file.grid(row = 2, column = 3)
-
 		self.send_file.grid(row = 2, column = 1)
 
 		self.button_edit.grid(row = 2, column = 1, columnspan = 2)
 		self.button_data.grid(row = 2, column = 2, columnspan = 1)
 		self.button_delete.grid(row = 2, column = 2, columnspan = 3)
+		self.button_file.grid(row = 2, column = 3)
 		
 		self.button_test.grid(row = 3, column = 3)
 
-		
+		self.list_box_2.grid(row = 5 ,column = 2, sticky = tk.W+tk.E)
 
-		self.list_box_2.grid(row = 4 ,column = 2, sticky = tk.W+tk.E)
-
-		self.dirs.insert(0,'Выбериет файл который хотите отправить на сервер')
+		self.dirs.insert(0,'Введите данные которые хотите отправить на сервер')
 		self.url.insert(0,'http://httpbin.org/post')
 		
 		self.list_box_2.bind("<<ListboxSelect>>", self.test)
@@ -87,6 +84,7 @@ class Programm():
 	def data_edit(self):
 		data = self.data.get()
 		data_value = self.data_value.get()
+		
 		index = self.list_box_2.curselection()
 
 		self.list_box_2.delete(index, index)
@@ -108,13 +106,14 @@ class Programm():
 
 	def file_dir(self):
 		file = filedialog.askopenfilename()
+		
 		self.dirs.delete(0, tk.END)
 		self.dirs.insert(0, f"{file},")
 
 	def data_send(self):
-		
 		data = self.data.get()
 		data_value = self.data_value.get()
+
 		if data == '':
 			pass
 		else:
@@ -122,9 +121,6 @@ class Programm():
 			self.list_box_2.insert(0, f'{data} : {data_value}')
 
 	def data_delete(self):
-
-		
-
 		sel = self.list_box_2.curselection()
 
 		if sel == ():
@@ -151,8 +147,7 @@ class Programm():
 		log = s.text
 		json_data = json.loads(log)
 		list_box = tk.Listbox()
-		list_box.grid(row = 2 ,column = 2, sticky = tk.W+tk.E)
-		
+		list_box.grid(row = 4 ,column = 2, sticky = tk.W+tk.E)
 
 		for name in json_data:
 			if name == "headers":

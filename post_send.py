@@ -108,7 +108,7 @@ class Programm():
 
 	def file_dir(self):
 		file = filedialog.askopenfilename()
-		self.dirs.delete(tk.FIRST, tk.END)
+		self.dirs.delete(0, tk.END)
 		self.dirs.insert(0, f"{file},")
 
 	def data_send(self):
@@ -142,14 +142,11 @@ class Programm():
 		for data in self.list_box_2.get(0, tk.END):
 			data_key = data.split(" : ")[0]
 			data_value = data.split(" : ")[1]
-			print(data_key)
-			print(data_value)
 			if data_value == "":
 				pass
 			else:
 				data_box[data_key] = data_value
 
-		print(data_box)
 		s = requests.post(url, data = data_box, files= files if files == "" else None)
 		log = s.text
 		json_data = json.loads(log)

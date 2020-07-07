@@ -49,8 +49,10 @@ class Programm():
 		self.dirsTextEntry = tk.StringVar()
 		self.dataTextEntry = tk.StringVar()
 		self.data_valueTextEntry = tk.StringVar()
+		self.nameTextEntry = tk.StringVar()
 
 		self.dirs = tk.Entry(width = 40, textvariable = self.urlTextEntry)
+		self.name = tk.Entry(width = 40, textvariable = self.nameTextEntry)
 		self.url = tk.Entry(width = 40, textvariable = self.dirsTextEntry)
 		self.data = tk.Entry(width = 20, textvariable = self.dataTextEntry)
 		self.data_value = tk.Entry(width = 20, textvariable = self.data_valueTextEntry)
@@ -74,6 +76,7 @@ class Programm():
 		self.data.grid(row = 1, column = 1, columnspan = 2)
 		self.data_value.grid(row = 1, column = 2, columnspan = 2)
 		self.dirs.grid(row = 1, column = 3, pady = 10, padx = 20)
+		self.name.grid(row = 2, column = 3)
 
 		self.button_send_data_POST.grid(row = 2, column = 1)
 		self.button_send_data_GET.grid(row = 3, column = 1)
@@ -81,44 +84,37 @@ class Programm():
 		self.button_data_edit.grid(row = 2, column = 1, columnspan = 2)
 		self.button_data_add.grid(row = 2, column = 2, columnspan = 1)
 		self.button_data_delete.grid(row = 2, column = 2, columnspan = 3)
-		self.button_files_dir.grid(row = 2, column = 3)
-		
-		self.button_test.grid(row = 3, column = 3)
-
+		self.button_files_dir.grid(row = 3, column = 3)
+	
 		self.list_box_2.grid(row = 5 ,column = 2, sticky = tk.W+tk.E)
 
 		self.dirs.insert(0,'Выберите файл')
 		self.url.insert(0,'http://httpbin.org/post')
 		
-		self.list_box_2.bind("<<ListboxSelect>>", self.test)
+		self.list_box_2.bind("<<ListboxSelect>>")
 		
-		
-		self.dirs.bind('<FocusIn>', self.on_entry_click)
-
-	def on_entry_click(self,get):
-		print(get)
-		q = pyperclip.paste()
-		if q != "":
-			self.url.delete(0, "end") # delete all the text in the entry
-			self.url.insert(0, q) #Insert blank for user input
-		else:
-			pass
 	
 	def file_dir(self):
 		file = filedialog.askopenfilename()
 		
-		self.dirs.insert(0, f"{file},")
+		self.dirs.delete(0, tk.END)
+		self.dirs.insert(0, f"{file}")
 
 	def data_add(self):
 		data = self.data.get()
 		data_value = self.data_value.get()
+		file = self.dirs.get()
+		name = self.name.get()
 
-		if data == '':
+		if name != "":
+			self.list_box_2.insert(0, f'file : {name} --> {file}')
+		if data == "" and data_value == "":
 			pass
 		else:
-			sel = self.list_box_2.curselection()
-			self.list_box_2.insert(0, f'{data} : {data_value}')
-
+			if data == '':
+				self.list_box_2.insert(0, f'{data} : ""')
+			else:
+				self.list_box_2.insert(0, f'{data} : {data_value}')
 	def data_edit(self):
 		data = self.data.get()
 		data_value = self.data_value.get()
@@ -131,38 +127,33 @@ class Programm():
 	def data_delete(self):
 		cursor_data = self.list_box_2.curselection()
 
-		if sel == ():
+		if cursor_data == ():
 			pass
 		else:
 			self.list_box_2.delete(cursor_data[0])
 
 	def send_POST(self):
-		dirs = self.dirs.get()
 		url = self.url.get()
-		dirs_files = dirs.split(',')
-		dirs_files.pop()
-
+		
 		files = {}
 		files_data = []
-
-		if dirs_files == []:
-			files_dates = None
-		else:
-			for dir_file in dirs_files:
-				file_name = dir_file.split('/')[-1]
-				files_data += [(file_name ,open(file_name,'rb'))]
-
-			files_dates = files_data
 
 		data_box = {}
 
 		for data in self.list_box_2.get(0, tk.END):
 			data_key = data.split(" : ")[0]
 			data_value = data.split(" : ")[1]
-			if data_value == "":
-				data_box[data_key] = ""
+			if data_key == "file":
+				name = data_value.split(' --> ')[0]
+				dirs = data_value.split(' --> ')[1]
+
+				files_data += [(name, open(dirs, 'rb'))]
+				files_dates = files_data
 			else:
-				data_box[data_key] = data_value
+				if data_value == "":
+					data_box[data_key] = ""
+				else:
+					data_box[data_key] = data_value
 
 		s = requests.post(url, data = data_box, json = data_box, files = files_dates if files_dates != "" else None)
 		log = s.text
@@ -189,33 +180,28 @@ class Programm():
 					list_box.insert(0, f"{name} --> {json_data[name]}")
 
 	def send_GET(self):
-		dirs = self.dirs.get()
-		url = self.url.get()
-		dirs_files = dirs.split(',')
-		dirs_files.pop()
+		url = self.url.get()		
 
-		data = self.list_box_2.get(0, tk.END)
-		param = {}
+		data_box = {}
 
-		files = {}
+		files_data = {}
 		files_data = []
 
-		if dirs_files == []:
-			files_dates = None
-		else:
-			for dir_file in dirs_files:
-				file_name = dir_file.split('/')[-1]
-				files_data += [(file_name, open(file_name,'rb'))]
+		for data in self.list_box_2.get(0, tk.END):
+			data_key = data.split(" : ")[0]
+			data_value = data.split(" : ")[1]
+			if data_key == "file":
+				name = data_value.split(' --> ')[0]
+				dirs = data_value.split(' --> ')[1]
 
-			files_dates = files_data
-
-		for str_data in data:
-			data_key = str_data.split(" : ")[0]
-			data_value = str_data.split(" : ")[1]
-
-			param[data_key] = data_value
-
-		s = requests.get(url, params = param, files = files_dates)
+				files_data += [(name, open(dirs, 'rb'))]
+				files_dates = files_data
+			else:
+				if data_value == "":
+					data_box[data_key] = ""
+				else:
+					data_box[data_key] = data_value
+		s = requests.get(url, params = data_box, files = files_dates)
 		log = s.text
 
 		try:

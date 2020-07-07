@@ -3,7 +3,8 @@ from tkinter import filedialog
 import tkinter as tk
 from tkinter import Menu
 import json
- 
+import pyperclip
+
 root = tk.Tk()
 root.title("MyFirstProgramm")
 menu = Menu(root)
@@ -44,10 +45,15 @@ class Programm():
 		self.L1 = tk.Label(text = "Обязательно проверте запрос GET или POST", font = "Arial 10", justify = tk.CENTER)
 		self.L2 = tk.Label(text = ":", font = "Arial 25", justify = tk.CENTER)
 		
-		self.dirs = tk.Entry(width = 40)
-		self.url = tk.Entry(width = 40)
-		self.data = tk.Entry(width = 20)
-		self.data_value = tk.Entry(width = 20)
+		self.urlTextEntry = tk.StringVar()
+		self.dirsTextEntry = tk.StringVar()
+		self.dataTextEntry = tk.StringVar()
+		self.data_valueTextEntry = tk.StringVar()
+
+		self.dirs = tk.Entry(width = 40, textvariable = self.urlTextEntry)
+		self.url = tk.Entry(width = 40, textvariable = self.dirsTextEntry)
+		self.data = tk.Entry(width = 20, textvariable = self.dataTextEntry)
+		self.data_value = tk.Entry(width = 20, textvariable = self.data_valueTextEntry)
 
 		self.button_files_dir = tk.Button(root, text = "...", command =self.file_dir)
 		self.button_data_add = tk.Button(root, text = "Добавить", command =self.data_add)
@@ -85,7 +91,19 @@ class Programm():
 		self.url.insert(0,'http://httpbin.org/post')
 		
 		self.list_box_2.bind("<<ListboxSelect>>", self.test)
+		
+		
+		self.dirs.bind('<FocusIn>', self.on_entry_click)
 
+	def on_entry_click(self,get):
+		print(get)
+		q = pyperclip.paste()
+		if q != "":
+			self.url.delete(0, "end") # delete all the text in the entry
+			self.url.insert(0, q) #Insert blank for user input
+		else:
+			pass
+	
 	def file_dir(self):
 		file = filedialog.askopenfilename()
 		
@@ -111,23 +129,30 @@ class Programm():
 		self.list_box_2.insert(0, f'{data} : {data_value}')
 
 	def data_delete(self):
-		sel = self.list_box_2.curselection()
+		cursor_data = self.list_box_2.curselection()
 
 		if sel == ():
 			pass
 		else:
-			self.list_box_2.delete(sel[0])
+			self.list_box_2.delete(cursor_data[0])
 
 	def send_POST(self):
 		dirs = self.dirs.get()
 		url = self.url.get()
-		dir_file = dirs.split(',')
-		dir_file.pop()
-		if dir_file == []:
-			files = ""
+		dirs_files = dirs.split(',')
+		dirs_files.pop()
+
+		files = {}
+		files_data = []
+
+		if dirs_files == []:
+			files_dates = None
 		else:
-			for file in dir_file:
-				files = {'file' : file}
+			for dir_file in dirs_files:
+				file_name = dir_file.split('/')[-1]
+				files_data += [(file_name ,open(file_name,'rb'))]
+
+			files_dates = files_data
 
 		data_box = {}
 
@@ -135,11 +160,11 @@ class Programm():
 			data_key = data.split(" : ")[0]
 			data_value = data.split(" : ")[1]
 			if data_value == "":
-				pass
+				data_box[data_key] = ""
 			else:
 				data_box[data_key] = data_value
 
-		s = requests.post(url, json = data_box, files= files if files == "" else None)
+		s = requests.post(url, data = data_box, json = data_box, files = files_dates if files_dates != "" else None)
 		log = s.text
 
 		try:
@@ -165,18 +190,24 @@ class Programm():
 
 	def send_GET(self):
 		dirs = self.dirs.get()
-		dir_file = dirs.split(',')
-		dir_file.pop()
-
 		url = self.url.get()
+		dirs_files = dirs.split(',')
+		dirs_files.pop()
+
 		data = self.list_box_2.get(0, tk.END)
 		param = {}
 
-		if dir_file == []:
-			files = ""
+		files = {}
+		files_data = []
+
+		if dirs_files == []:
+			files_dates = None
 		else:
-			for file in dir_file:
-				files = {'file' : file}
+			for dir_file in dirs_files:
+				file_name = dir_file.split('/')[-1]
+				files_data += [(file_name, open(file_name,'rb'))]
+
+			files_dates = files_data
 
 		for str_data in data:
 			data_key = str_data.split(" : ")[0]
@@ -184,7 +215,7 @@ class Programm():
 
 			param[data_key] = data_value
 
-		s = requests.get(url, params = param, files = files)
+		s = requests.get(url, params = param, files = files_dates)
 		log = s.text
 
 		try:
@@ -205,10 +236,10 @@ class Programm():
 				list_box.insert(0, f"{key} --> {json_data[key]}")
 
 	def test(self):
+		q = pyperclip.paste()
 		dirs = self.dirs.get()
 		dir_file = dirs.split(',')
 		dir_file.pop()
-		print(dir_file)
 		return
 		data = self.list_box_2.get(self.list_box_2.curselection())
 		
